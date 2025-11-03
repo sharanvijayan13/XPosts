@@ -40,9 +40,11 @@ export const AuthProvider = ({ children }) => {
     if (session?.user) {
       // User is signed in with NextAuth (Google)
       console.log('NextAuth session found:', session.user)
+      console.log('Setting user in AuthContext:', session.user)
       dispatch({ type: 'SET_USER', payload: session.user })
       dispatch({ type: 'SET_LOADING', payload: false })
     } else {
+      console.log('No NextAuth session, checking localStorage')
       // Check for stored JWT token
       const token = localStorage.getItem('token')
       const user = localStorage.getItem('user')
