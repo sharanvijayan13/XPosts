@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { verifyToken, getTokenFromRequest } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../../auth/[...nextauth]/route'
 import { validateBlogPost, sanitizeInput } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
@@ -49,19 +50,13 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const { id } = params
-    const token = getTokenFromRequest(request)
     
-    if (!token) {
+    // Get session from NextAuth
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    const decoded = verifyToken(token)
-    if (!decoded) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
         { status: 401 }
       )
     }
@@ -91,7 +86,7 @@ export async function PUT(request, { params }) {
       )
     }
 
-    if (existingPost.author_id !== decoded.userId) {
+    if (existingPost.author_id !== session.user.id) {
       return NextResponse.json(
         { error: 'Unauthorized to update this post' },
         { status: 403 }
@@ -153,19 +148,13 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = params
-    const token = getTokenFromRequest(request)
     
-    if (!token) {
+    // Get session from NextAuth
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    const decoded = verifyToken(token)
-    if (!decoded) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
         { status: 401 }
       )
     }
@@ -184,7 +173,7 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    if (existingPost.author_id !== decoded.userId) {
+    if (existingPost.author_id !== session.user.id) {
       return NextResponse.json(
         { error: 'Unauthorized to delete this post' },
         { status: 403 }

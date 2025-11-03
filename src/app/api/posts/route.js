@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { verifyToken, getTokenFromRequest } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../auth/[...nextauth]/route'
 import { validateBlogPost, sanitizeInput } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
@@ -52,23 +53,17 @@ export async function GET(request) {
 // POST create new post
 export async function POST(request) {
   try {
-    const token = getTokenFromRequest(request)
+    // Get session from NextAuth
+    const session = await getServerSession(authOptions)
     
-    if (!token) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       )
     }
 
-    const decoded = verifyToken(token)
-    
-    if (!decoded) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
+    console.log('Creating post for user:', session.user)
 
 
 
@@ -96,7 +91,7 @@ export async function POST(request) {
           title: sanitizedTitle,
           content: sanitizedContent,
           excerpt,
-          author_id: decoded.userId,
+          author_id: session.user.id,
         },
       ])
       .select(`

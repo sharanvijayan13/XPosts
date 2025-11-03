@@ -25,9 +25,44 @@ export const authOptions = {
         try {
           console.log('Processing Google sign-in for:', user.email)
           
-          // For now, just allow the sign-in without database operations
-          // We'll add database integration once basic auth works
-          user.dbId = user.id // Use Google ID temporarily
+          // Check if user exists in our database
+          const { data: existingUser, error: fetchError } = await supabaseAdmin
+            .from('users')
+            .select('id, name, email')
+            .eq('email', user.email)
+            .single()
+
+          if (fetchError && fetchError.code !== 'PGRST116') {
+            console.error('Database fetch error:', fetchError)
+            return false
+          }
+
+          if (!existingUser) {
+            console.log('Creating new user:', user.email)
+            // Create new user in our database
+            const { data: newUser, error } = await supabaseAdmin
+              .from('users')
+              .insert([
+                {
+                  name: user.name,
+                  email: user.email,
+                  google_id: user.id,
+                },
+              ])
+              .select('id, name, email')
+              .single()
+
+            if (error) {
+              console.error('Error creating user:', error)
+              return false
+            }
+            
+            user.dbId = newUser.id
+            console.log('New user created with ID:', newUser.id)
+          } else {
+            user.dbId = existingUser.id
+            console.log('Existing user found with ID:', existingUser.id)
+          }
           
           return true
         } catch (error) {
