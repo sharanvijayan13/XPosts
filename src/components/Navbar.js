@@ -32,11 +32,6 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Debug: Show user state */}
-            <div className="text-xs text-gray-500">
-              User: {user ? 'Yes' : 'No'}
-            </div>
-            
             {user ? (
               <div className="flex items-center space-x-4">
                 <Link
