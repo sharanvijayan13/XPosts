@@ -16,40 +16,18 @@ export const authOptions = {
       }
     }),
   ],
+  debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account.provider === 'google') {
+      console.log('SignIn callback triggered:', { user: user.email, provider: account?.provider })
+      
+      if (account?.provider === 'google') {
         try {
-          // Check if user exists in our database
-          const { data: existingUser } = await supabaseAdmin
-            .from('users')
-            .select('id, name, email')
-            .eq('email', user.email)
-            .single()
-
-          if (!existingUser) {
-            // Create new user in our database
-            const { data: newUser, error } = await supabaseAdmin
-              .from('users')
-              .insert([
-                {
-                  name: user.name,
-                  email: user.email,
-                  google_id: user.id,
-                },
-              ])
-              .select('id, name, email')
-              .single()
-
-            if (error) {
-              console.error('Error creating user:', error)
-              return false
-            }
-            
-            user.dbId = newUser.id
-          } else {
-            user.dbId = existingUser.id
-          }
+          console.log('Processing Google sign-in for:', user.email)
+          
+          // For now, just allow the sign-in without database operations
+          // We'll add database integration once basic auth works
+          user.dbId = user.id // Use Google ID temporarily
           
           return true
         } catch (error) {

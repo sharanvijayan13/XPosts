@@ -4,6 +4,14 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
+
+if (!supabaseServiceKey) {
+  console.warn('Missing SUPABASE_SERVICE_ROLE_KEY - server-side operations may fail')
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Admin client for server-side operations
