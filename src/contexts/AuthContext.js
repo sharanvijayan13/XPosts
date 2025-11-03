@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
       // Check for stored JWT token
       const token = localStorage.getItem('token')
       const user = localStorage.getItem('user')
-      
+
       if (token && user) {
         dispatch({ type: 'SET_TOKEN', payload: token })
         dispatch({ type: 'SET_USER', payload: JSON.parse(user) })
@@ -57,16 +57,22 @@ export const AuthProvider = ({ children }) => {
 
   const fetchSessionToken = async () => {
     try {
+      console.log('Fetching session token...')
       const response = await fetch('/api/auth/session')
+      console.log('Session response status:', response.status)
+
       if (response.ok) {
         const data = await response.json()
+        console.log('Session data:', data)
         dispatch({ type: 'SET_TOKEN', payload: data.token })
         dispatch({ type: 'SET_USER', payload: data.user })
-        
+
         // Store in localStorage for consistency
         localStorage.setItem('token', data.token)
         localStorage.setItem('user', JSON.stringify(data.user))
       } else {
+        const errorData = await response.text()
+        console.error('Session fetch failed:', response.status, errorData)
         // If session fetch fails, clear any existing tokens
         localStorage.removeItem('token')
         localStorage.removeItem('user')
@@ -84,7 +90,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -101,10 +107,10 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      
+
       dispatch({ type: 'SET_TOKEN', payload: data.token })
       dispatch({ type: 'SET_USER', payload: data.user })
-      
+
       toast.success('Login successful!')
       return { success: true }
     } catch (error) {
@@ -117,7 +123,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -134,10 +140,10 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      
+
       dispatch({ type: 'SET_TOKEN', payload: data.token })
       dispatch({ type: 'SET_USER', payload: data.user })
-      
+
       toast.success('Registration successful!')
       return { success: true }
     } catch (error) {
@@ -152,7 +158,7 @@ export const AuthProvider = ({ children }) => {
       // Sign out from NextAuth
       await signOut({ redirect: false })
     }
-    
+
     // Clear JWT token
     localStorage.removeItem('token')
     localStorage.removeItem('user')
