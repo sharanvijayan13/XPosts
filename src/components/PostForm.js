@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Save, X, Eye, Edit2, Type, FileText } from "lucide-react";
 
 export default function PostForm({ post, onSubmit, isEditing = false }) {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -27,11 +27,6 @@ export default function PostForm({ post, onSubmit, isEditing = false }) {
   const watchedContent = watch("content");
 
   const onFormSubmit = async (data) => {
-    if (!token) {
-      toast.error("Please login to continue");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -42,7 +37,6 @@ export default function PostForm({ post, onSubmit, isEditing = false }) {
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -51,8 +45,9 @@ export default function PostForm({ post, onSubmit, isEditing = false }) {
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error("Session expired. Please login again.");
+          toast.error("Please login to continue");
         } else {
+          console.error('API Error:', result);
           toast.error(result.error || "Failed to save post");
         }
         return;
